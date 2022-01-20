@@ -1,0 +1,47 @@
+-------
+WEEK 10
+-------
+
+1).
+SELECT Customer.customerName, customerCity, NVL2(SUM(Deposit.balance), SUM(Deposit.balance), 0) AS Total
+FROM Customer
+FULL JOIN Deposit
+ON Deposit.customerName = Customer.customerName
+GROUP BY Customer.customerName, customerCity;
+
+2).
+SELECT customerName, 'Has no account and no loan' STATUS
+FROM Customer
+WHERE customerName NOT IN (SELECT customerName FROM Loan)
+AND
+customerName NOT IN (SELECT customerName FROM Deposit)
+UNION
+SELECT customerName, 'Has an account but no loan' STATUS
+FROM Customer
+WHERE customerName NOT IN (SELECT customerName FROM Loan)
+AND
+customerName IN (SELECT customerName FROM Deposit)
+UNION
+SELECT customerName, 'Has a loan but no account' STATUS
+FROM Customer
+WHERE customerName IN (SELECT customerName FROM Loan)
+AND
+customerName NOT IN (SELECT customerName FROM Deposit)
+UNION
+SELECT customerName, 'Has both an account and a loan' STATUS
+FROM Customer
+WHERE customerName IN (SELECT customerName FROM Loan)
+AND
+customerName IN (SELECT customerName FROM Deposit);
+
+3).
+SELECT customerName, customerCity,
+(SELECT NVL2(SUM(balance),SUM(balance),0) from Deposit WHERE 
+Deposit.customerName = Customer.customerName) "Total Balance",
+(SELECT NVL2(SUM(amount),SUM(amount),0) from Loan WHERE 
+Loan.customerName = Customer.customerName) "Total Amount"
+FROM Customer
+WHERE (SELECT NVL2(SUM(amount),SUM(amount),0) from Loan 
+WHERE Loan.customerName = Customer.customerName) > 
+(SELECT NVL2(SUM(balance),SUM(balance),0) from Deposit WHERE 
+Deposit.customerName = Customer.customerName);

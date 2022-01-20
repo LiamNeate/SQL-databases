@@ -1,0 +1,50 @@
+-------
+WEEK 8
+-------
+
+Optional: Making user).
+
+CREATE USER lneate IDENTIFIED BY password;
+
+1).
+a).
+GRANT select ON Deposit TO lneate;
+
+SELECT * FROM lneate.Deposit; 
+
+b).
+REVOKE select ON Deposit FROM lneate;
+
+SELECT * FROM lneate.Deposit; 
+
+c).
+CREATE VIEW CustomerDetails (customerName, branchName) AS
+SELECT customerName, branchName
+FROM Deposit 
+WHERE balance > 400;
+
+GRANT select ON CustomerDetails TO lneate;
+
+SELECT * FROM lneate.CustomerDetails; 
+
+c).
+REVOKE select ON CustomerDetails FROM lneate;
+
+SELECT * FROM lneate.CustomerDetails;
+
+Ex 1).
+CREATE VIEW employeeData (E-no, name, job, dept) AS
+SELECT E-no, name, job, dept
+FROM Data;
+
+GRANT select ON employeeData TO
+(SELECT name WHERE job = 'Manager);
+
+Ex 2).
+CREATE VIEW managerData (*) AS
+SELECT salary
+FROM Data
+WHERE 
+
+GRANT select ON employeeData TO
+(SELECT name WHERE job <> 'Manager);

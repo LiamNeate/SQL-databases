@@ -1,0 +1,26 @@
+-------
+WEEK 9
+-------
+
+1).
+UPDATE Deposit 
+SET balance = balance *1.10
+WHERE branchName = 'RoyalBank';
+
+2).
+UPDATE Loan
+SET amount = amount * 1.05
+WHERE loanNumber IN 
+(SELECT Loan.loanNumber
+FROM Loan
+INNER JOIN Deposit ON Deposit.customerName = Loan.customerName
+AND Deposit.branchName = Loan.branchName);
+
+=======================
+Alternative, less code
+=======================
+
+UPDATE Loan
+SET amount = amount * 1.05
+WHERE (customerName, branchName) IN
+(SELECT * FROM Deposit);

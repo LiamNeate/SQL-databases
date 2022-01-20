@@ -1,0 +1,37 @@
+-------
+WEEK 3
+-------
+
+1).
+SELECT Branch.branchName, SUM(balance) FROM Branch LEFT JOIN Deposit
+ON Branch.branchName = Deposit.branchName
+GROUP BY Branch.branchName;
+
+2).
+SELECT Branch.branchName, COUNT(balance) FROM Branch LEFT JOIN Deposit
+ON Branch.branchName = Deposit.branchName
+GROUP BY Branch.branchName
+HAVING COUNT(balance)>1;
+
+3).
+a).
+SELECT customerName FROM Deposit JOIN Branch
+ON Deposit.branchName = Branch.branchName
+WHERE branchCity = 'Nottingham';
+
+b).
+SELECT customerName FROM Deposit
+WHERE branchName IN
+(SELECT branchName FROM Branch
+WHERE branchCity = 'Nottingham');
+
+4).
+SELECT customerName FROM Deposit
+WHERE balance >= ALL
+(SELECT balance
+FROM Deposit);
+
+5).
+SELECT Deposit.customerName, Customer.customerCity, Deposit.branchName, Branch.branchCity FROM Deposit, Customer, Branch
+WHERE  Customer.customerName = Deposit.customerName
+AND Branch.branchName = Deposit.branchName;

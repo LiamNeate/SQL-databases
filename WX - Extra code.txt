@@ -1,0 +1,35 @@
+-----------
+Extra Code
+-----------
+
+ALTER TABLE Deposit DROP CONSTRAINT CUSTDEPOS CASCADE;
+ALTER TABLE Deposit ADD CONSTRAINT DepToCust FOREIGN KEY (customerName) 
+REFERENCES Customer(CustomerName) ON DELETE CASCADE;
+ - Fixed (CUSTDEPOS Customer -> Deposit fk)
+
+ALTER TABLE Loan DROP CONSTRAINT BRANCHLOAN CASCADE;
+ALTER TABLE Loan ADD CONSTRAINT LoanToBranch FOREIGN KEY (branchName) 
+REFERENCES Branch(branchName) ON DELETE CASCADE;
+ - Fixed(BRANCHLOAN Branch -> Loan fk)
+
+ALTER TABLE Deposit DROP CONSTRAINT BRANCHDEPOS CASCADE;
+ALTER TABLE Deposit ADD CONSTRAINT DepToBr FOREIGN KEY (branchName) 
+REFERENCES Branch(branchName) ON DELETE CASCADE;
+ - Fixed (BRANCHDEPOS Branch -> Deposit fk)
+
+ALTER TABLE Loan DROP CONSTRAINT CUSTLOAN CASCADE;
+ALTER TABLE Loan ADD CONSTRAINT LoanToCust FOREIGN KEY (customerName) 
+REFERENCES Customer(customerName) ON DELETE CASCADE;
+ - Fixed (CUSTLOAN Customer -> Loan FK)
+
+select constraint_name, constraint_type, delete_rule from user_constraints;
+
+HFE Ahmed and Patel need to be RoyalBank
+
+UPDATE Deposit
+SET branchName = 'RoyalBank'
+WHERE CustomerName = 'Ahmed';
+
+UPDATE Deposit
+SET branchName = 'RoyalBank'
+WHERE CustomerName = 'Patel' AND BranchName = 'HFE';

@@ -1,0 +1,51 @@
+-------
+WEEK 4
+-------
+
+1).
+CREATE OR REPLACE PROCEDURE AddInterest(theBranchName VARCHAR, interestRate DEC) AS
+BEGIN
+UPDATE Deposit SET balance =  balance + (balance/interestRate)
+WHERE branchName = theBranchName;
+END;
+/
+
+2).
+CREATE OR REPLACE PROCEDURE AddInterest(theBranchName VARCHAR, interestRate DEC) AS
+CURSOR someCustomerRows IS
+SELECT customerName, balance FROM DEPOSIT
+WHERE branchName = theBranchName;
+aName Deposit.customerName%TYPE;
+aBalance Deposit.balance%TYPE;
+BEGIN
+UPDATE Deposit SET balance =  balance + balance * (interestRate/100)
+WHERE branchName = theBranchName;
+OPEN someCustomerRows;
+LOOP
+FETCH someCustomerRows INTO aName, aBalance;
+EXIT WHEN someCustomerRows%NOTFOUND;
+dbms_output.put_line('Customer Name ='||aName);
+dbms_output.put_line('Balance ='||aBalance);
+END LOOP;
+CLOSE someCustomerRows;
+END;
+/
+
+3).
+CREATE OR REPLACE PROCEDURE AmmLoaned(theBranchName VARCHAR) AS
+CURSOR loanAmm IS
+SELECT amount FROM LOAN
+WHERE branchName = theBranchName;
+aAmount Loan.amount%TYPE;
+totalLoanAmount INT:=0;
+BEGIN
+OPEN loanAmm;
+LOOP
+FETCH loanAmm INTO aAmount;
+EXIT WHEN loanAmm%NOTFOUND;
+totalLoanAmount := totalLoanAmount + aAmount;
+END LOOP;
+CLOSE loanAmm;
+dbms_output.put_line('Total loaned = '||totalLoanAmount);
+END;
+/

@@ -1,0 +1,40 @@
+-------
+WEEK 11
+-------
+
+1).
+CREATE OR REPLACE TYPE personType AS OBJECT(
+dateOfBirth DATE,
+firstName VARCHAR(20),
+lastName VARCHAR(20),
+MEMBER FUNCTION getAGE RETURN INTEGER)
+FINAL;
+/
+
+2).
+CREATE OR REPLACE TYPE BODY personType AS
+MEMBER FUNCTION getAge RETURN INTEGER IS
+todaysDate DATE;
+age INT;
+BEGIN
+todaysDate := SYSDATE();
+age := EXTRACT( YEAR FROM todaysDate) - EXTRACT(YEAR FROM dateOfBirth);
+RETURN(age);
+END getAge;
+END;
+/
+
+3).
+CREATE TABLE NewCustomer(
+person PersonType,
+product VARCHAR(15),
+cost DECIMAL(6,2));
+
+4).
+INSERT INTO NewCustomer VALUES(
+personType('26-OCT-60', 'Chris', 'Smith'),
+'Computer',
+534.99);
+
+5).
+SELECT (n.person.getAge()) AS age, product FROM NewCustomer n;

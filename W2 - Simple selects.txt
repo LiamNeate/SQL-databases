@@ -1,0 +1,31 @@
+-------
+WEEK 2
+-------
+
+1).
+(SELECT customerName FROM Loan
+WHERE branchName = 'Midlands')
+UNION
+(SELECT customerName FROM Deposit
+WHERE branchName = 'Midlands');
+
+2).
+SELECT branchName, Customer.customerName FROM Customer JOIN Loan
+ON Customer.customerName = Loan.customerName
+WHERE Customer.customerCity = 'Nottingham';
+
+3).
+SELECT Loan.customerName, amount, balance FROM Loan FULL JOIN Deposit
+ON Loan.customerName = Deposit.customerName
+WHERE Loan.branchName = 'Yorkshire';
+
+4).
+SELECT T.customerName 
+FROM Loan S JOIN Loan T
+ON S.customerName = 'Smith'
+WHERE S.branchName = T.branchName
+AND T.customerName != 'Smith';
+
+5).
+SELECT MIN(balance), MAX(balance), AVG(balance) FROM Deposit
+WHERE branchName = 'Midlands';
