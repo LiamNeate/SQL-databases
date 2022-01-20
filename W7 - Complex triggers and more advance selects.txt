@@ -1,0 +1,50 @@
+-------
+WEEK 7
+-------
+
+1). 
+CREATE INDEX depBal
+ON Deposit (balance);
+
+2).
+a).
+ALTER TABLE Deposit
+ADD accStart Date DEFAULT SYSDATE;
+
+ALTER TABLE Loan
+ADD loanStart Date DEFAULT SYSDATE;
+
+b).
+ALTER TABLE Deposit
+ADD accUpdate Date;
+
+ALTER TABLE Loan
+ADD loanUpdate Date;
+
+============
+NOT WORKING
+============
+
+CREATE OR REPLACE TRIGGER updateAccUpdate
+BEFORE UPDATE ON Deposit
+FOR EACH ROW
+BEGIN
+:new.accUpdate:=SYSDATE;
+END;
+/
+
+3).
+a).
+INSERT INTO Loan(customerName, branchName, loanNumber, amount)
+VALUES ('Jones', 'RoyalBank', 14, 10030);
+
+b).
+UPDATE Deposit SET balance = 233
+WHERE accountNumber = 1;
+
+4).
+SELECT customerName, REPLACE(branchName, 'RoyalBank', 'RoyalNorthernBank') AS branchName, accountNumber, balance, 
+(TO_CHAR(accStart, 'hh:mm dd-mm-yy')) AS StartDate, TO_CHAR(accUpdate, 'hh:mm dd-mm-yy') AS UpdateDate, 
+TO_CHAR(SYSDATE, 'hh:mm dd-mm-yy') AS Query_DateTime 
+FROM Deposit
+ORDER BY branchName, customerName; 

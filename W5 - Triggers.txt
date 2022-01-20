@@ -1,0 +1,80 @@
+-------
+WEEK 5
+-------
+
+1).
+a).
+CREATE TABLE BankStats(
+when DATE PRIMARY KEY,
+numberOfLoans INT);
+
+b).
+INSERT INTO BankStats (when, numberOfLoans)
+VALUES (SYSDATE,
+(SELECT COUNT(*) FROM 
+Loan));
+
+c).
+CREATE OR REPLACE TRIGGER updateBankStats
+AFTER INSERT OR DELETE ON Loan
+BEGIN
+INSERT INTO BankStats (when, numberOfLoans)
+VALUES (SYSDATE,
+(SELECT COUNT(*) FROM 
+Loan));
+END;
+/
+
+d).
+INSERT INTO Loan(customerName, branchName, loanNumber, amount)
+VALUES ('Jones', 'RoyalBank', 14, 10030);
+
+DELETE FROM Loan WHERE amount = 10030;
+
+2).
+a).
+CREATE TABLE BankStats2(
+branchName VARCHAR(10) PRIMARY KEY,
+numberOfLoans INT);
+
+b).
+INSERT INTO BankStats2 (branchName, numberOfLoans)
+VALUES ('Yorkshire',
+(SELECT COUNT(*) FROM Loan
+WHERE branchName = 'Yorkshire'));
+
+INSERT INTO BankStats2 (branchName, numberOfLoans)
+VALUES ('Midlands',
+(SELECT COUNT(*) FROM Loan
+WHERE branchName = 'Midlands'));
+
+INSERT INTO BankStats2 (branchName, numberOfLoans)
+VALUES ('RoyalBank',
+(SELECT COUNT(*) FROM Loan
+WHERE branchName = 'RoyalBank'));
+
+c).
+CREATE OR REPLACE TRIGGER addBankStats2
+AFTER INSERT ON Loan
+FOR EACH ROW
+BEGIN
+UPDATE BankStats2 SET numberOfLoans = numberOfLoans + 1
+WHERE BankStats2.branchName = :new.branchName;
+END;
+/
+
+d).
+CREATE OR REPLACE TRIGGER removeBankStats2
+AFTER DELETE ON Loan
+FOR EACH ROW
+BEGIN
+UPDATE BankStats2 SET numberOfLoans = numberOfLoans - 1
+WHERE BankStats2.branchName = :old.branchName;
+END;
+/
+
+e).
+INSERT INTO Loan(customerName, branchName, loanNumber, amount)
+VALUES ('Jones', 'RoyalBank', 14, 10030);
+
+DELETE FROM Loan WHERE amount = 10030;

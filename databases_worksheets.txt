@@ -1,0 +1,494 @@
+-------
+WEEK 2
+-------
+
+1).
+(SELECT customerName FROM Loan
+WHERE branchName = 'Midlands')
+UNION
+(SELECT customerName FROM Deposit
+WHERE branchName = 'Midlands');
+
+2).
+SELECT branchName, Customer.customerName FROM Customer JOIN Loan
+ON Customer.customerName = Loan.customerName
+WHERE Customer.customerCity = 'Nottingham';
+
+3).
+SELECT Loan.customerName, amount, balance FROM Loan FULL JOIN Deposit
+ON Loan.customerName = Deposit.customerName
+WHERE Loan.branchName = 'Yorkshire';
+
+4).
+SELECT T.customerName 
+FROM Loan S JOIN Loan T
+ON S.customerName = 'Smith'
+WHERE S.branchName = T.branchName
+AND T.customerName != 'Smith';
+
+5).
+SELECT MIN(balance), MAX(balance), AVG(balance) FROM Deposit
+WHERE branchName = 'Midlands';
+
+-------
+WEEK 3
+-------
+
+1).
+SELECT Branch.branchName, SUM(balance) FROM Branch LEFT JOIN Deposit
+ON Branch.branchName = Deposit.branchName
+GROUP BY Branch.branchName;
+
+2).
+SELECT Branch.branchName, COUNT(balance) FROM Branch LEFT JOIN Deposit
+ON Branch.branchName = Deposit.branchName
+GROUP BY Branch.branchName
+HAVING COUNT(balance)>1;
+
+3).
+a).
+SELECT customerName FROM Deposit JOIN Branch
+ON Deposit.branchName = Branch.branchName
+WHERE branchCity = 'Nottingham';
+
+b).
+SELECT customerName FROM Deposit
+WHERE branchName IN
+(SELECT branchName FROM Branch
+WHERE branchCity = 'Nottingham');
+
+4).
+SELECT customerName FROM Deposit
+WHERE balance >= ALL
+(SELECT balance
+FROM Deposit);
+
+5).
+SELECT Deposit.customerName, Customer.customerCity, Deposit.branchName, Branch.branchCity FROM Deposit, Customer, Branch
+WHERE  Customer.customerName = Deposit.customerName
+AND Branch.branchName = Deposit.branchName;
+
+-------
+WEEK 4
+-------
+
+1).
+CREATE OR REPLACE PROCEDURE AddInterest(theBranchName VARCHAR, interestRate DEC) AS
+BEGIN
+UPDATE Deposit SET balance =  balance + (balance/interestRate)
+WHERE branchName = theBranchName;
+END;
+/
+
+2).
+CREATE OR REPLACE PROCEDURE AddInterest(theBranchName VARCHAR, interestRate DEC) AS
+CURSOR someCustomerRows IS
+SELECT customerName, balance FROM DEPOSIT
+WHERE branchName = theBranchName;
+aName Deposit.customerName%TYPE;
+aBalance Deposit.balance%TYPE;
+BEGIN
+UPDATE Deposit SET balance =  balance + balance * (interestRate/100)
+WHERE branchName = theBranchName;
+OPEN someCustomerRows;
+LOOP
+FETCH someCustomerRows INTO aName, aBalance;
+EXIT WHEN someCustomerRows%NOTFOUND;
+dbms_output.put_line('Customer Name ='||aName);
+dbms_output.put_line('Balance ='||aBalance);
+END LOOP;
+CLOSE someCustomerRows;
+END;
+/
+
+3).
+CREATE OR REPLACE PROCEDURE AmmLoaned(theBranchName VARCHAR) AS
+CURSOR loanAmm IS
+SELECT amount FROM LOAN
+WHERE branchName = theBranchName;
+aAmount Loan.amount%TYPE;
+totalLoanAmount INT:=0;
+BEGIN
+OPEN loanAmm;
+LOOP
+FETCH loanAmm INTO aAmount;
+EXIT WHEN loanAmm%NOTFOUND;
+totalLoanAmount := totalLoanAmount + aAmount;
+END LOOP;
+CLOSE loanAmm;
+dbms_output.put_line('Total loaned = '||totalLoanAmount);
+END;
+/
+
+-------
+WEEK 5
+-------
+
+1).
+a).
+CREATE TABLE BankStats(
+when DATE PRIMARY KEY,
+numberOfLoans INT);
+
+b).
+INSERT INTO BankStats (when, numberOfLoans)
+VALUES (SYSDATE,
+(SELECT COUNT(*) FROM 
+Loan));
+
+c).
+CREATE OR REPLACE TRIGGER updateBankStats
+AFTER INSERT OR DELETE ON Loan
+BEGIN
+INSERT INTO BankStats (when, numberOfLoans)
+VALUES (SYSDATE,
+(SELECT COUNT(*) FROM 
+Loan));
+END;
+/
+
+d).
+INSERT INTO Loan(customerName, branchName, loanNumber, amount)
+VALUES ('Jones', 'RoyalBank', 14, 10030);
+
+DELETE FROM Loan WHERE amount = 10030;
+
+2).
+a).
+CREATE TABLE BankStats2(
+branchName VARCHAR(10) PRIMARY KEY,
+numberOfLoans INT);
+
+b).
+INSERT INTO BankStats2 (branchName, numberOfLoans)
+VALUES ('Yorkshire',
+(SELECT COUNT(*) FROM Loan
+WHERE branchName = 'Yorkshire'));
+
+INSERT INTO BankStats2 (branchName, numberOfLoans)
+VALUES ('Midlands',
+(SELECT COUNT(*) FROM Loan
+WHERE branchName = 'Midlands'));
+
+INSERT INTO BankStats2 (branchName, numberOfLoans)
+VALUES ('RoyalBank',
+(SELECT COUNT(*) FROM Loan
+WHERE branchName = 'RoyalBank'));
+
+c).
+CREATE OR REPLACE TRIGGER addBankStats2
+AFTER INSERT ON Loan
+FOR EACH ROW
+BEGIN
+UPDATE BankStats2 SET numberOfLoans = numberOfLoans + 1
+WHERE BankStats2.branchName = :new.branchName;
+END;
+/
+
+d).
+CREATE OR REPLACE TRIGGER removeBankStats2
+AFTER DELETE ON Loan
+FOR EACH ROW
+BEGIN
+UPDATE BankStats2 SET numberOfLoans = numberOfLoans - 1
+WHERE BankStats2.branchName = :old.branchName;
+END;
+/
+
+e).
+INSERT INTO Loan(customerName, branchName, loanNumber, amount)
+VALUES ('Jones', 'RoyalBank', 14, 10030);
+
+DELETE FROM Loan WHERE amount = 10030;
+
+-------
+WEEK 6
+-------
+1).
+a).
+UPDATE Branch
+SET branchName = 'Royal'
+WHERE branchName = 'RoyalBank';
+
+'ERROR at line 1:
+ORA-02292: integrity constraint (N0919032.BRANCHDEPOS) violated - child record found'
+
+b).
+UPDATE Deposit
+SET branchName = 'Royal'
+WHERE branchName = 'RoyalBank';
+
+'ERROR at line 1:
+ORA-02291: integrity constraint (N0919032.BRANCHDEPOS) violated - parent key not found
+
+c).
+UPDATE Deposit
+SET branchName = 'HFE'
+WHERE branchName = 'RoyalBank';
+
+No error, all deposits that where RoalyBank are now HFE
+
+d).
+DELETE FROM Branch 
+WHERE branchName = 'RoyalBank';
+
+No error, RoyalBank branch has been deleted
+
+e). 
+DELETE FROM Deposit 
+WHERE branchName = 'RoyalBank';
+
+-------
+WEEK 7
+-------
+
+1). 
+CREATE INDEX depBal
+ON Deposit (balance);
+
+2).
+a).
+ALTER TABLE Deposit
+ADD accStart Date DEFAULT SYSDATE;
+
+ALTER TABLE Loan
+ADD loanStart Date DEFAULT SYSDATE;
+
+b).
+ALTER TABLE Deposit
+ADD accUpdate Date;
+
+ALTER TABLE Loan
+ADD loanUpdate Date;
+
+============
+NOT WORKING
+============
+
+CREATE OR REPLACE TRIGGER updateAccUpdate
+BEFORE UPDATE ON Deposit
+FOR EACH ROW
+BEGIN
+:new.accUpdate:=SYSDATE;
+END;
+/
+
+3).
+a).
+INSERT INTO Loan(customerName, branchName, loanNumber, amount)
+VALUES ('Jones', 'RoyalBank', 14, 10030);
+
+b).
+UPDATE Deposit SET balance = 233
+WHERE accountNumber = 1;
+
+4).
+SELECT customerName, REPLACE(branchName, 'RoyalBank', 'RoyalNorthernBank') AS branchName, accountNumber, balance, 
+(TO_CHAR(accStart, 'hh:mm dd-mm-yy')) AS StartDate, TO_CHAR(accUpdate, 'hh:mm dd-mm-yy') AS UpdateDate, 
+TO_CHAR(SYSDATE, 'hh:mm dd-mm-yy') AS Query_DateTime 
+FROM Deposit
+ORDER BY branchName, customerName; 
+
+-------
+WEEK 8
+-------
+
+Optional: Making user).
+
+CREATE USER lneate IDENTIFIED BY password;
+
+1).
+a).
+GRANT select ON Deposit TO lneate;
+
+SELECT * FROM lneate.Deposit; 
+
+b).
+REVOKE select ON Deposit FROM lneate;
+
+SELECT * FROM lneate.Deposit; 
+
+c).
+CREATE VIEW CustomerDetails (customerName, branchName) AS
+SELECT customerName, branchName
+FROM Deposit 
+WHERE balance > 400;
+
+GRANT select ON CustomerDetails TO lneate;
+
+SELECT * FROM lneate.CustomerDetails; 
+
+c).
+REVOKE select ON CustomerDetails FROM lneate;
+
+SELECT * FROM lneate.CustomerDetails;
+
+Ex 1).
+CREATE VIEW employeeData (E-no, name, job, dept) AS
+SELECT E-no, name, job, dept
+FROM Data;
+
+GRANT select ON employeeData TO
+(SELECT name WHERE job = 'Manager);
+
+Ex 2).
+CREATE VIEW managerData (*) AS
+SELECT salary
+FROM Data
+WHERE 
+
+GRANT select ON employeeData TO
+(SELECT name WHERE job <> 'Manager);
+
+-------
+WEEK 9
+-------
+
+1).
+UPDATE Deposit 
+SET balance = balance *1.10
+WHERE branchName = 'RoyalBank';
+
+2).
+UPDATE Loan
+SET amount = amount * 1.05
+WHERE loanNumber IN 
+(SELECT Loan.loanNumber
+FROM Loan
+INNER JOIN Deposit ON Deposit.customerName = Loan.customerName
+AND Deposit.branchName = Loan.branchName);
+
+=======================
+Alternative, less code
+=======================
+
+UPDATE Loan
+SET amount = amount * 1.05
+WHERE (customerName, branchName) IN
+(SELECT * FROM Deposit);
+
+-------
+WEEK 10
+-------
+
+1).
+SELECT Customer.customerName, customerCity, NVL2(SUM(Deposit.balance), SUM(Deposit.balance), 0) AS Total
+FROM Customer
+FULL JOIN Deposit
+ON Deposit.customerName = Customer.customerName
+GROUP BY Customer.customerName, customerCity;
+
+2).
+SELECT customerName, 'Has no account and no loan' STATUS
+FROM Customer
+WHERE customerName NOT IN (SELECT customerName FROM Loan)
+AND
+customerName NOT IN (SELECT customerName FROM Deposit)
+UNION
+SELECT customerName, 'Has an account but no loan' STATUS
+FROM Customer
+WHERE customerName NOT IN (SELECT customerName FROM Loan)
+AND
+customerName IN (SELECT customerName FROM Deposit)
+UNION
+SELECT customerName, 'Has a loan but no account' STATUS
+FROM Customer
+WHERE customerName IN (SELECT customerName FROM Loan)
+AND
+customerName NOT IN (SELECT customerName FROM Deposit)
+UNION
+SELECT customerName, 'Has both an account and a loan' STATUS
+FROM Customer
+WHERE customerName IN (SELECT customerName FROM Loan)
+AND
+customerName IN (SELECT customerName FROM Deposit);
+
+3).
+SELECT customerName, customerCity,
+(SELECT NVL2(SUM(balance),SUM(balance),0) from Deposit WHERE 
+Deposit.customerName = Customer.customerName) "Total Balance",
+(SELECT NVL2(SUM(amount),SUM(amount),0) from Loan WHERE 
+Loan.customerName = Customer.customerName) "Total Amount"
+FROM Customer
+WHERE (SELECT NVL2(SUM(amount),SUM(amount),0) from Loan 
+WHERE Loan.customerName = Customer.customerName) > 
+(SELECT NVL2(SUM(balance),SUM(balance),0) from Deposit WHERE 
+Deposit.customerName = Customer.customerName);
+
+
+-------
+WEEK 11
+-------
+
+1).
+CREATE OR REPLACE TYPE personType AS OBJECT(
+dateOfBirth DATE,
+firstName VARCHAR(20),
+lastName VARCHAR(20),
+MEMBER FUNCTION getAGE RETURN INTEGER)
+FINAL;
+/
+
+2).
+CREATE OR REPLACE TYPE BODY personType AS
+MEMBER FUNCTION getAge RETURN INTEGER IS
+todaysDate DATE;
+age INT;
+BEGIN
+todaysDate := SYSDATE();
+age := EXTRACT( YEAR FROM todaysDate) - EXTRACT(YEAR FROM dateOfBirth);
+RETURN(age);
+END getAge;
+END;
+/
+
+3).
+CREATE TABLE NewCustomer(
+person PersonType,
+product VARCHAR(15),
+cost DECIMAL(6,2));
+
+4).
+INSERT INTO NewCustomer VALUES(
+personType('26-OCT-60', 'Chris', 'Smith'),
+'Computer',
+534.99);
+
+5).
+SELECT (n.person.getAge()) AS age, product FROM NewCustomer n;
+
+-----------
+Extra Code
+-----------
+
+ALTER TABLE Deposit DROP CONSTRAINT CUSTDEPOS CASCADE;
+ALTER TABLE Deposit ADD CONSTRAINT DepToCust FOREIGN KEY (customerName) 
+REFERENCES Customer(CustomerName) ON DELETE CASCADE;
+ - Fixed (CUSTDEPOS Customer -> Deposit fk)
+
+ALTER TABLE Loan DROP CONSTRAINT BRANCHLOAN CASCADE;
+ALTER TABLE Loan ADD CONSTRAINT LoanToBranch FOREIGN KEY (branchName) 
+REFERENCES Branch(branchName) ON DELETE CASCADE;
+ - Fixed(BRANCHLOAN Branch -> Loan fk)
+
+ALTER TABLE Deposit DROP CONSTRAINT BRANCHDEPOS CASCADE;
+ALTER TABLE Deposit ADD CONSTRAINT DepToBr FOREIGN KEY (branchName) 
+REFERENCES Branch(branchName) ON DELETE CASCADE;
+ - Fixed (BRANCHDEPOS Branch -> Deposit fk)
+
+ALTER TABLE Loan DROP CONSTRAINT CUSTLOAN CASCADE;
+ALTER TABLE Loan ADD CONSTRAINT LoanToCust FOREIGN KEY (customerName) 
+REFERENCES Customer(customerName) ON DELETE CASCADE;
+ - Fixed (CUSTLOAN Customer -> Loan FK)
+
+select constraint_name, constraint_type, delete_rule from user_constraints;
+
+HFE Ahmed and Patel need to be RoyalBank
+
+UPDATE Deposit
+SET branchName = 'RoyalBank'
+WHERE CustomerName = 'Ahmed';
+
+UPDATE Deposit
+SET branchName = 'RoyalBank'
+WHERE CustomerName = 'Patel' AND BranchName = 'HFE';

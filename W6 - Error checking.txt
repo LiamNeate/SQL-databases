@@ -1,0 +1,36 @@
+-------
+WEEK 6
+-------
+1).
+a).
+UPDATE Branch
+SET branchName = 'Royal'
+WHERE branchName = 'RoyalBank';
+
+'ERROR at line 1:
+ORA-02292: integrity constraint (N0919032.BRANCHDEPOS) violated - child record found'
+
+b).
+UPDATE Deposit
+SET branchName = 'Royal'
+WHERE branchName = 'RoyalBank';
+
+'ERROR at line 1:
+ORA-02291: integrity constraint (N0919032.BRANCHDEPOS) violated - parent key not found
+
+c).
+UPDATE Deposit
+SET branchName = 'HFE'
+WHERE branchName = 'RoyalBank';
+
+No error, all deposits that where RoalyBank are now HFE
+
+d).
+DELETE FROM Branch 
+WHERE branchName = 'RoyalBank';
+
+No error, RoyalBank branch has been deleted
+
+e). 
+DELETE FROM Deposit 
+WHERE branchName = 'RoyalBank';
